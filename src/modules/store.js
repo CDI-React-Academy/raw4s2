@@ -1,31 +1,29 @@
+import { applyMiddleware, createStore } from "redux";
+import { rootReducer } from "./reducers";
+import { composeWithDevTools } from "redux-devtools-extension";
+import createSagaMiddleware from "redux-saga";
+import rootSaga from "./sagas";
 
-import { createStore } from 'redux';
+const sagaMiddleware = createSagaMiddleware();
 
-function rootReducer(state, action) {
-  let newState = JSON.parse(JSON.stringify(state));
-  console.log('Olde State', newState, action);
+const composeEnhancers = composeWithDevTools({
+  name: "RAW4S2",
+  trace: true,
+  traceLimit: 25
+});
 
-  switch(action.type) {
-    case "Login": 
-      newState.auth.isLoggedIn = true;
-      newState.auth.name = action.payload;
-      break;
-    case "Logout": 
-      newState.auth.isLoggedIn = false;
-      newState.auth.name = ''
-      break;
-    default: 
-    break;
-  }
-  console.log(newState);
-  newState.isInit = true;
-  return newState;
-}
-
-export const store = createStore(rootReducer, { auth: {
+export const store = createStore(
+  rootReducer,
+  {
+    auth: {
       isLoggedIn: false,
       name: "",
-      role: 'customer'
+      role: "customer"
     },
-    isInit: false,
-  });
+    isInit: false
+  },
+  // composeEnhancers()
+  composeEnhancers(applyMiddleware(sagaMiddleware))
+);
+
+sagaMiddleware.run(rootSaga);
